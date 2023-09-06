@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.validation.constraints.NotBlank;
 import java.util.Date;
 
 @Setter
@@ -16,17 +17,22 @@ import java.util.Date;
 @NoArgsConstructor
 @Document(collection = "quotes")
 public class Quotes {
+
     @Id
+    @JsonIgnore
     private String id;
 
+    @NotBlank(message="Quote is required")
     private String quote;
 
+    @NotBlank(message="Author is required")
     private String author;
 
+    @NotBlank(message="Language is required")
     @JsonIgnore
-    private Date insertedAt ;
+    private String language;
 
     @JsonIgnore
-    private Date updatedAt ;
+    private String[] category ;
 
 }
