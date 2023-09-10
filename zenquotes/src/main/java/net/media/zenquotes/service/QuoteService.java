@@ -3,11 +3,13 @@ package net.media.zenquotes.service;
 import net.media.zenquotes.customException.DataNotFoundException;
 import net.media.zenquotes.model.QueryParams;
 import net.media.zenquotes.model.Quotes;
-import net.media.zenquotes.repository.QuoteRepository;
+//import net.media.zenquotes.repository.QuoteRepository;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,10 +17,11 @@ import java.util.Random;
 
 @Service
 public class QuoteService {
+//    @Autowired
+//    private QuoteRepository quoteRepo ;
     @Autowired
-    private QuoteRepository quoteRepo ;
+    private MongoTemplate mongoTemplate ;
     private final KieContainer kieContainer;
-
     public QuoteService(KieContainer kieContainer) {
         this.kieContainer = kieContainer;
     }
@@ -44,19 +47,34 @@ public class QuoteService {
 
         List<Quotes> customizedQuote ;
 
-        if (obj.getFilterByLanguage() != null && !obj.getFilterByLanguage().isEmpty()) {
-            customizedQuote = quoteRepo.findAllByLanguage(obj.getFilterByLanguage()) ;
+//        if (obj.getFilterByLanguage() != null && !obj.getFilterByLanguage().isEmpty()) {
+//            customizedQuote = quoteRepo.findAllByLanguage(obj.getFilterByLanguage()) ;
+//        }
+//        else if (obj.getFilterByAuthor() != null && !obj.getFilterByAuthor().isEmpty()) {
+//            customizedQuote = quoteRepo.findAllByAuthor(obj.getFilterByAuthor()) ;
+//        }
+//        else if (obj.getFilterByCategory() != null && !obj.getFilterByCategory().isEmpty()) {
+//            customizedQuote = quoteRepo.findAllByCategoryContains(obj.getFilterByCategory()) ;
+//        }
+//        else{
+//            customizedQuote = quoteRepo.findAllByLanguage("English") ;
+//        }
+//        return customizedQuote ;
+
+        Query query = new Query();
+        if (obj.getFilterByLanguage()!=null) {
+            query.addCriteria(Criteria.where("language").is(obj.getFilterByLanguage()));
         }
-        else if (obj.getFilterByAuthor() != null && !obj.getFilterByAuthor().isEmpty()) {
-            customizedQuote = quoteRepo.findAllByAuthor(obj.getFilterByAuthor()) ;
+        if (obj.getFilterByAuthor()!=null) {
+            query.addCriteria(Criteria.where("author").is(obj.getFilterByAuthor()));
         }
-        else if (obj.getFilterByCategory() != null && !obj.getFilterByCategory().isEmpty()) {
-            customizedQuote = quoteRepo.findAllByCategoryContains(obj.getFilterByCategory()) ;
+        if (obj.getFilterByCategory()!=null) {
+            query.addCriteria(Criteria.where("category").is(obj.getFilterByCategory()));
         }
-        else{
-            customizedQuote = quoteRepo.findAllByLanguage("English") ;
-        }
-        return customizedQuote ;
+
+        customizedQuote = mongoTemplate.find(query, Quotes.class);
+        return customizedQuote;
+
 
     }
 

@@ -6,6 +6,7 @@ rule "Filter by Browser and Country and os (Steve Jobs)"
         $query: QueryParams(browser == "chrome", country == "US", os == "mac")
     then
         $query.setFilterByAuthor("Steve Jobs");
+        $query.setFilterByCategory("motivation");
         drools.halt();
 end
 
@@ -53,6 +54,14 @@ rule "Filter by OS (Marathi)"
         $query : QueryParams(os == "windows")
     then
         $query.setFilterByLanguage("Marathi");
+        drools.halt();
+end
+
+rule "Filter by OS (Steve Jobs)"
+    when
+        $query : QueryParams(os == "mac")
+    then
+        $query.setFilterByAuthor("Steve Jobs");
         drools.halt();
 end
 
