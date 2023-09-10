@@ -1,0 +1,82 @@
+import net.media.zenquotes.model.QueryParams
+
+
+rule "Filter by Browser and Country and os (Steve Jobs)"
+    when
+        $query: QueryParams(browser == "chrome", country == "US", os == "mac")
+    then
+        $query.setFilterByAuthor("Steve Jobs");
+        drools.halt();
+end
+
+rule "Filter by Browser and Country and os (English)"
+    when
+        $query: QueryParams(browser == "chrome", country == "US", os == "windows")
+    then
+        $query.setFilterByLanguage("English");
+        drools.halt();
+end
+
+rule "Filter by Browser and Country (Unknown)"
+    when
+        $query: QueryParams(browser == "chrome", country == "US")
+    then
+        $query.setFilterByAuthor("Unknown");
+        drools.halt();
+end
+
+rule "Filter by Browser and Country (Hindi)"
+    when
+        $query : QueryParams(browser == "brave", country == "India")
+    then
+        $query.setFilterByLanguage("Hindi");
+end
+
+rule "Filter by Country (English)"
+    when
+        $query : QueryParams(country == "US")
+    then
+        $query.setFilterByLanguage("English");
+        drools.halt();
+end
+
+rule "Filter by Browser (Shakespeare)"
+    when
+        $query : QueryParams(browser == "chrome")
+    then
+        $query.setFilterByAuthor("William Shakespeare");
+        drools.halt();
+end
+
+rule "Filter by OS (Marathi)"
+    when
+        $query : QueryParams(os == "windows")
+    then
+        $query.setFilterByLanguage("Marathi");
+        drools.halt();
+end
+
+rule "Filter by User (English)"
+    when
+        $query : QueryParams(user == "1")
+    then
+        $query.setFilterByLanguage("English");
+        drools.halt();
+end
+
+rule "Filter by User (Marathi)"
+    when
+        $query : QueryParams(user == "2")
+    then
+        $query.setFilterByLanguage("Marathi");
+        drools.halt();
+end
+
+rule "Filter by User (Hindi)"
+    when
+        $query : QueryParams(user == "3")
+    then
+        $query.setFilterByLanguage("Hindi");
+        drools.halt();
+end
+

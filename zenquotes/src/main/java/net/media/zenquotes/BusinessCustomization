@@ -1,8 +1,11 @@
-browser=chrome and country = US -> show quotes by Unknown authors only
 
-browser = chrome  -> show quotes by Shakespeare only
-country = US  -> show only English language quotes
-os = windows ->  show quotes in Marathi language only
-user = 1 -> show quotes in English only
-user= 2 -> show quotes in Marathi only
-user = 3 -> show quotes in Hindi only
+browser = chrome and country = US and os = windows  -> show quotes in English language only
+browser = chrome and country = US and os = mac  -> show quotes by Steve Jobs only
+browser = chrome and country = US   -> show quotes by Unknown authors only
+browser = brave and country = India -> show quotes in Hindi language
+browser = chrome                    -> show quotes by William shakespeare
+country = US                      -> show only English language quotes
+os = windows                      ->  show quotes in Marathi language only
+user = 1                          -> show quotes in English only
+user= 2                           -> show quotes in Marathi only
+user = 3                          -> show quotes in Hindi only

@@ -10,6 +10,6 @@ import java.util.List;
 public interface QuoteRepository extends MongoRepository<Quotes, String> {
     List<Quotes> findAllByAuthor(String author) ;
     List<Quotes> findAllByLanguage(String language) ;
-    List<Quotes> findByAuthorStartsWith(String author) ;
+    List<Quotes> findAllByCategoryContains(String category) ;
 
 }

@@ -1,11 +1,13 @@
 package net.media.zenquotes.service;
 
 import net.media.zenquotes.customException.DataNotFoundException;
+import net.media.zenquotes.model.QueryParams;
 import net.media.zenquotes.model.Quotes;
 import net.media.zenquotes.repository.QuoteRepository;
+import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,42 +17,46 @@ import java.util.Random;
 public class QuoteService {
     @Autowired
     private QuoteRepository quoteRepo ;
+    private final KieContainer kieContainer;
 
-    public ResponseEntity<?> getCustomizedQuote(String browser, String os, String country, String user) throws DataNotFoundException {
+    public QuoteService(KieContainer kieContainer) {
+        this.kieContainer = kieContainer;
+    }
 
-        List<Quotes> customizedQuote = null;
+    public QueryParams applyRules(QueryParams queryObj) {
+        KieSession kieSession = kieContainer.newKieSession();
+        kieSession.insert(queryObj);
+        kieSession.fireAllRules();
+        kieSession.dispose();
+        return queryObj;
+    }
 
-        if(country!=null && browser!=null && country.equalsIgnoreCase("US") && browser.equalsIgnoreCase("chrome")){
-            customizedQuote = quoteRepo.findAllByAuthor("Unknown");
+
+    public List<Quotes> getCustomizedQuote(String browser, String country, String os, String user) throws DataNotFoundException {
+
+        QueryParams queryParams = new QueryParams();
+        queryParams.setBrowser(browser);
+        queryParams.setCountry(country);
+        queryParams.setOs(os);
+        queryParams.setUser(user);
+
+        QueryParams obj = applyRules(queryParams) ;
+
+        List<Quotes> customizedQuote ;
+
+        if (obj.getFilterByLanguage() != null && !obj.getFilterByLanguage().isEmpty()) {
+            customizedQuote = quoteRepo.findAllByLanguage(obj.getFilterByLanguage()) ;
         }
-        else if(country!=null && country.equalsIgnoreCase("US")) {
-            customizedQuote = quoteRepo.findAllByLanguage("English");
+        else if (obj.getFilterByAuthor() != null && !obj.getFilterByAuthor().isEmpty()) {
+            customizedQuote = quoteRepo.findAllByAuthor(obj.getFilterByAuthor()) ;
         }
-        else if(browser!=null && browser.equalsIgnoreCase("chrome")){
-            customizedQuote = quoteRepo.findByAuthorStartsWith("William Shakespeare");
-        }
-        else if(os !=null && os.equalsIgnoreCase("windows")) {
-            customizedQuote = quoteRepo.findAllByLanguage("Marathi");
-        }
-        else if(user !=null) {
-            switch (user) {
-                case "1":
-                    customizedQuote = quoteRepo.findAllByLanguage("English");
-                    break;
-                case "2":
-                    customizedQuote = quoteRepo.findAllByLanguage("Marathi");
-                    break;
-                case "3":
-                    customizedQuote = quoteRepo.findAllByLanguage("Hindi");
-                    break;
-                default:
-                    throw  new DataNotFoundException() ;
-            }
+        else if (obj.getFilterByCategory() != null && !obj.getFilterByCategory().isEmpty()) {
+            customizedQuote = quoteRepo.findAllByCategoryContains(obj.getFilterByCategory()) ;
         }
         else{
-            customizedQuote = quoteRepo.findAll() ;
+            customizedQuote = quoteRepo.findAllByLanguage("English") ;
         }
-        return new ResponseEntity<>(getRandomQuote(customizedQuote), HttpStatus.OK) ;
+        return customizedQuote ;
 
     }
 
@@ -60,4 +66,9 @@ public class QuoteService {
         }
         return quoteData.get(new Random().nextInt(quoteData.size())) ;
     }
+
+
+
+
+
 }
