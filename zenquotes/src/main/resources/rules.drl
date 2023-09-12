@@ -33,6 +33,14 @@ rule "Filter by Browser and Country (Hindi)"
         $query.setFilterByLanguage("Hindi");
 end
 
+rule "heyhey"
+    when
+        $query : QueryParams(os == "mac", user == "2")
+    then
+        $query.setFilterByAuthor("William Shakespeare");
+        drools.halt();
+end
+
 rule "Filter by Country (English)"
     when
         $query : QueryParams(country == "US")
@@ -65,27 +73,13 @@ rule "Filter by OS (Steve Jobs)"
         drools.halt();
 end
 
-rule "Filter by User (English)"
-    when
-        $query : QueryParams(user == "1")
-    then
-        $query.setFilterByLanguage("English");
-        drools.halt();
-end
-
-rule "Filter by User (Marathi)"
+rule "Filter by user (Unknown)"
     when
         $query : QueryParams(user == "2")
     then
-        $query.setFilterByLanguage("Marathi");
+        $query.setFilterByAuthor("Unknown");
         drools.halt();
 end
 
-rule "Filter by User (Hindi)"
-    when
-        $query : QueryParams(user == "3")
-    then
-        $query.setFilterByLanguage("Hindi");
-        drools.halt();
-end
+
 

@@ -7,6 +7,8 @@ import net.media.zenquotes.model.Quotes;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -19,6 +21,8 @@ import java.util.Random;
 public class QuoteService {
 //    @Autowired
 //    private QuoteRepository quoteRepo ;
+    @Autowired
+    private CacheManager cacheManager ;
     @Autowired
     private MongoTemplate mongoTemplate ;
     private final KieContainer kieContainer;
@@ -38,6 +42,13 @@ public class QuoteService {
     public List<Quotes> getCustomizedQuote(String browser, String country, String os, String user) throws DataNotFoundException {
 
         QueryParams queryParams = new QueryParams();
+
+//        if(user!=null){
+//            queryParams.setUser(user);
+//            getQuoteByUser(user) ;
+//        }
+
+
         queryParams.setBrowser(browser);
         queryParams.setCountry(country);
         queryParams.setOs(os);
@@ -79,6 +90,15 @@ public class QuoteService {
     }
 
     public Quotes getRandomQuote(List<Quotes> quoteData) throws DataNotFoundException {
+        if (quoteData.isEmpty()) {
+            throw new DataNotFoundException("No matching quotes found.");
+        }
+        return quoteData.get(new Random().nextInt(quoteData.size())) ;
+    }
+
+
+    @Cacheable(value="usersCache", key = "#user")
+    public Quotes getRandomQuoteForUser(List<Quotes> quoteData, String user) throws DataNotFoundException {
         if (quoteData.isEmpty()) {
             throw new DataNotFoundException("No matching quotes found.");
         }
