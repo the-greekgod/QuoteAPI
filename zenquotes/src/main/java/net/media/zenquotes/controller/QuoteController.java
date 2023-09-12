@@ -29,7 +29,8 @@ public class QuoteController {
         List<Quotes> quotes = quoteService.getCustomizedQuote(browser, country, os, user) ;
         Quotes customizedQuote ;
         if(user!=null){
-            customizedQuote = quoteService.getRandomQuoteForUser(quotes, user) ;
+            String key = browser+country+os+user ;
+            customizedQuote = quoteService.getRandomQuoteForUser(quotes, key) ;
         }
         else{
             customizedQuote = quoteService.getRandomQuote(quotes) ;
