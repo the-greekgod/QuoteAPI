@@ -1,44 +1,26 @@
 package net.media.zenquotes.controller;
 
 import net.media.zenquotes.customException.DataNotFoundException;
+import net.media.zenquotes.model.QueryParams;
 import net.media.zenquotes.model.Quotes;
 import net.media.zenquotes.service.QuoteService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("v1/quotes")
 public class QuoteController {
+    private final QuoteService quoteService ;
 
-    @Autowired
-    private QuoteService quoteService ;
-
+    public QuoteController(QuoteService quoteService) {
+        this.quoteService = quoteService;
+    }
 
     @GetMapping("")
-    public ResponseEntity<?> getCustomizedQuote(
-            @RequestParam(required = false) String browser,
-            @RequestParam(required = false) String country,
-            @RequestParam(required = false) String os,
-            @RequestParam(required = false) String user
-    ) throws DataNotFoundException {
-
-        List<Quotes> quotes = quoteService.getCustomizedQuote(browser, country, os, user) ;
-        Quotes customizedQuote ;
-        if(user!=null){
-            String key = browser+country+os+user ;
-            customizedQuote = quoteService.getRandomQuoteForUser(quotes, key) ;
-        }
-        else{
-            customizedQuote = quoteService.getRandomQuote(quotes) ;
-        }
-//        Quotes customizedQuote = quoteService.getRandomQuote(quotes) ;
-
+    public ResponseEntity<Quotes> getCustomizedQuote(@ModelAttribute QueryParams queries) throws DataNotFoundException {
+        Quotes customizedQuote = quoteService.getCustomizedQuote(queries) ;
         return new ResponseEntity<>(customizedQuote, HttpStatus.OK) ;
-
     }
 
 

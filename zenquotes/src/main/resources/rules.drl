@@ -1,85 +1,114 @@
 import net.media.zenquotes.model.QueryParams
+import net.media.zenquotes.model.QueryFilter
 
 
 rule "Filter by Browser and Country and os (Steve Jobs)"
     when
         $query: QueryParams(browser == "chrome", country == "US", os == "mac")
+        $filter: QueryFilter()
     then
-        $query.setFilterByAuthor("Steve Jobs");
-        $query.setFilterByCategory("motivation");
+        $filter.setFilterByAuthor("Steve Jobs");
+        $filter.setFilterByCategory("motivation");
         drools.halt();
 end
 
 rule "Filter by Browser and Country and os (English)"
     when
         $query: QueryParams(browser == "chrome", country == "US", os == "windows")
+        $filter: QueryFilter()
     then
-        $query.setFilterByLanguage("English");
+        $filter.setFilterByLanguage("English");
         drools.halt();
 end
 
 rule "Filter by Browser and Country (Unknown)"
     when
         $query: QueryParams(browser == "chrome", country == "US")
+        $filter: QueryFilter()
     then
-        $query.setFilterByAuthor("Unknown");
+        $filter.setFilterByAuthor("Unknown");
         drools.halt();
 end
 
 rule "Filter by Browser and Country (Hindi)"
     when
         $query : QueryParams(browser == "brave", country == "India")
+        $filter: QueryFilter()
     then
-        $query.setFilterByLanguage("Hindi");
+        $filter.setFilterByLanguage("Hindi");
 end
 
-rule "heyhey"
+rule "Filter by os and User (William Shakespeare , love)"
     when
         $query : QueryParams(os == "mac", user == "2")
+        $filter: QueryFilter()
     then
-        $query.setFilterByAuthor("William Shakespeare");
+        $filter.setFilterByAuthor("William Shakespeare");
+        $filter.setFilterByCategory("love");
         drools.halt();
 end
 
 rule "Filter by Country (English)"
     when
         $query : QueryParams(country == "US")
+        $filter: QueryFilter()
     then
-        $query.setFilterByLanguage("English");
+        $filter.setFilterByLanguage("English");
         drools.halt();
 end
 
 rule "Filter by Browser (Shakespeare)"
     when
         $query : QueryParams(browser == "chrome")
+        $filter: QueryFilter()
     then
-        $query.setFilterByAuthor("William Shakespeare");
+        $filter.setFilterByAuthor("William Shakespeare");
         drools.halt();
 end
 
 rule "Filter by OS (Marathi)"
     when
         $query : QueryParams(os == "windows")
+        $filter: QueryFilter()
     then
-        $query.setFilterByLanguage("Marathi");
+        $filter.setFilterByLanguage("Marathi");
         drools.halt();
 end
 
 rule "Filter by OS (Steve Jobs)"
     when
         $query : QueryParams(os == "mac")
+        $filter: QueryFilter()
     then
-        $query.setFilterByAuthor("Steve Jobs");
+        $filter.setFilterByAuthor("Steve Jobs");
+        drools.halt();
+end
+
+rule "Filter by user (English)"
+    when
+        $query : QueryParams(user == "1")
+        $filter: QueryFilter()
+    then
+        $filter.setFilterByLanguage("English");
         drools.halt();
 end
 
 rule "Filter by user (Unknown)"
     when
         $query : QueryParams(user == "2")
+        $filter: QueryFilter()
     then
-        $query.setFilterByAuthor("Unknown");
+        $filter.setFilterByAuthor("Unknown");
         drools.halt();
 end
 
+rule "Filter by user (Hindi)"
+    when
+        $query : QueryParams(user == "3")
+        $filter: QueryFilter()
+    then
+        $filter.setFilterByLanguage("Hindi");
+        drools.halt();
+end
 
 

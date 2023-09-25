@@ -1,112 +1,94 @@
 package net.media.zenquotes.service;
 
+import lombok.extern.slf4j.Slf4j;
+import net.media.zenquotes.cache.UserCacheService;
 import net.media.zenquotes.customException.DataNotFoundException;
+import net.media.zenquotes.model.QueryFilter;
 import net.media.zenquotes.model.QueryParams;
 import net.media.zenquotes.model.Quotes;
-//import net.media.zenquotes.repository.QuoteRepository;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache.ValueWrapper;
+
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
+@Slf4j
 public class QuoteService {
-//    @Autowired
-//    private QuoteRepository quoteRepo ;
-    @Autowired
-    private CacheManager cacheManager ;
-    @Autowired
-    private MongoTemplate mongoTemplate ;
+    private final MongoTemplate mongoTemplate ;
     private final KieContainer kieContainer;
-    public QuoteService(KieContainer kieContainer) {
+    private final UserCacheService cacheService;
+    private final CacheManager cacheManager;
+    public QuoteService(MongoTemplate mongoTemplate, KieContainer kieContainer, UserCacheService cacheService, CacheManager cacheManager) {
+        this.mongoTemplate = mongoTemplate;
         this.kieContainer = kieContainer;
+        this.cacheService = cacheService;
+        this.cacheManager = cacheManager;
     }
 
-    public QueryParams applyRules(QueryParams queryObj) {
+
+    public Quotes getCustomizedQuote(QueryParams queryParams) throws DataNotFoundException {
+        QueryFilter filterObj = getQueryFilter(queryParams);
+        Query query = getQuery(filterObj);
+//        System.out.println("After: " + query);
+        return getRandomQuote(queryParams, query) ;
+    }
+
+    private Quotes getRandomQuote(QueryParams queryParams, Query query) throws DataNotFoundException {
+        String cacheKey = queryParams.getKey();
+        ValueWrapper data = getDataFromCache(cacheKey);
+        if(data!=null){
+            log.info("Getting data from cache for key : "+ cacheKey);
+            return (Quotes) data.get();
+        }
+        log.info("Getting quotes from DB");
+        List<Quotes> quotes =  mongoTemplate.find(query, Quotes.class);
+        if (quotes.isEmpty()) {
+            throw new DataNotFoundException("No matching quotes found.");
+        }
+        if(queryParams.getUser()!=null){
+            return cacheService.getRandomQuoteForUser(quotes, cacheKey) ;
+        }
+        return quotes.get(new Random().nextInt(quotes.size())) ;
+    }
+
+    private ValueWrapper getDataFromCache(String cacheKey) {
+        return Optional.ofNullable(cacheManager.getCache("usersCache")).map(cache -> cache.get(cacheKey)).orElse(null);
+    }
+
+
+    private QueryFilter getQueryFilter(QueryParams queryObj) {
+        QueryFilter obj = new QueryFilter();
         KieSession kieSession = kieContainer.newKieSession();
         kieSession.insert(queryObj);
+        kieSession.insert(obj);
         kieSession.fireAllRules();
         kieSession.dispose();
-        return queryObj;
+        return obj;
     }
 
-
-    public List<Quotes> getCustomizedQuote(String browser, String country, String os, String user) throws DataNotFoundException {
-
-        QueryParams queryParams = new QueryParams();
-
-//        if(user!=null){
-//            queryParams.setUser(user);
-//            getQuoteByUser(user) ;
-//        }
-
-
-        queryParams.setBrowser(browser);
-        queryParams.setCountry(country);
-        queryParams.setOs(os);
-        queryParams.setUser(user);
-
-        QueryParams obj = applyRules(queryParams) ;
-
-        List<Quotes> customizedQuote ;
-
-//        if (obj.getFilterByLanguage() != null && !obj.getFilterByLanguage().isEmpty()) {
-//            customizedQuote = quoteRepo.findAllByLanguage(obj.getFilterByLanguage()) ;
-//        }
-//        else if (obj.getFilterByAuthor() != null && !obj.getFilterByAuthor().isEmpty()) {
-//            customizedQuote = quoteRepo.findAllByAuthor(obj.getFilterByAuthor()) ;
-//        }
-//        else if (obj.getFilterByCategory() != null && !obj.getFilterByCategory().isEmpty()) {
-//            customizedQuote = quoteRepo.findAllByCategoryContains(obj.getFilterByCategory()) ;
-//        }
-//        else{
-//            customizedQuote = quoteRepo.findAllByLanguage("English") ;
-//        }
-//        return customizedQuote ;
-
+    private Query getQuery(QueryFilter filterObj) {
         Query query = new Query();
-        if (obj.getFilterByLanguage()!=null) {
-            query.addCriteria(Criteria.where("language").is(obj.getFilterByLanguage()));
+//        System.out.println("Before: " + query);
+        if (filterObj.getFilterByLanguage()!=null) {
+            query.addCriteria(Criteria.where("language").is(filterObj.getFilterByLanguage()));
         }
-        if (obj.getFilterByAuthor()!=null) {
-            query.addCriteria(Criteria.where("author").is(obj.getFilterByAuthor()));
+        if (filterObj.getFilterByAuthor()!=null) {
+            query.addCriteria(Criteria.where("author").is(filterObj.getFilterByAuthor()));
         }
-        if (obj.getFilterByCategory()!=null) {
-            query.addCriteria(Criteria.where("category").is(obj.getFilterByCategory()));
+        if (filterObj.getFilterByCategory()!=null) {
+            query.addCriteria(Criteria.where("category").is(filterObj.getFilterByCategory()));
         }
-
-        customizedQuote = mongoTemplate.find(query, Quotes.class);
-        return customizedQuote;
-
-
+        return query;
     }
-
-    public Quotes getRandomQuote(List<Quotes> quoteData) throws DataNotFoundException {
-        if (quoteData.isEmpty()) {
-            throw new DataNotFoundException("No matching quotes found.");
-        }
-        return quoteData.get(new Random().nextInt(quoteData.size())) ;
-    }
-
-
-    @Cacheable(value="usersCache", key = "#user")
-    public Quotes getRandomQuoteForUser(List<Quotes> quoteData, String user) throws DataNotFoundException {
-        if (quoteData.isEmpty()) {
-            throw new DataNotFoundException("No matching quotes found.");
-        }
-        return quoteData.get(new Random().nextInt(quoteData.size())) ;
-    }
-
-
-
 
 
 }
